@@ -8,7 +8,7 @@ from utils.network_weight import UNet
 from utils.network import UNet as HUNet
 from utils.bmi_calcultator import BMI_calculator
 
-app = Flask(__name)
+app = Flask(__name__)
 
 # Load the height and weight models outside of the route function
 model_h = HUNet(128)

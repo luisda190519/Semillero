@@ -24,11 +24,11 @@ def predict():
 
         # Load the height and weight models
         model_h = HUNet(128)
-        pretrained_model_h = torch.load('models/model_ep_48.pth.tar', map_location=torch.device('cpu'))
+        pretrained_model_h = torch.load('models/model_ep_48.pth.tar')
         model_h.load_state_dict(pretrained_model_h["state_dict"])
 
         model_w = UNet(128, 32, 32)
-        pretrained_model_w = torch.load('models/model_ep_37.pth.tar', map_location=torch.device('cpu'))
+        pretrained_model_w = torch.load('models/model_ep_37.pth.tar')
         model_w.load_state_dict(pretrained_model_w["state_dict"])
 
         if torch.cuda.is_available():

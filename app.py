@@ -1,17 +1,27 @@
 import os
-import time
 import numpy as np
 import cv2
 import torch
 from torchvision import transforms
-import matplotlib.pyplot as plt
+from flask import Flask, request, jsonify
 from utils.network_weight import UNet
 from utils.network import UNet as HUNet
-from flask import Flask, request, jsonify
-from utils.bmi_calcultator import create_output_directory, BMI_calculator
+from utils.bmi_calcultator import BMI_calculator
 
+app = Flask(__name)
 
-app = Flask(__name__)
+# Load the height and weight models outside of the route function
+model_h = HUNet(128)
+pretrained_model_h = torch.load('models/model_ep_48.pth.tar', map_location=torch.device('cpu'))
+model_h.load_state_dict(pretrained_model_h["state_dict"])
+
+model_w = UNet(128, 32, 32)
+pretrained_model_w = torch.load('models/model_ep_37.pth.tar', map_location=torch.device('cpu'))
+model_w.load_state_dict(pretrained_model_w["state_dict"])
+
+if torch.cuda.is_available():
+    model_w = model_w.cuda(3)
+    model_h = model_h.cuda(3)
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -21,20 +31,6 @@ def predict():
 
         # Read the uploaded image using OpenCV
         image = cv2.imdecode(np.frombuffer(image_data.read(), np.uint8), cv2.IMREAD_COLOR)
-
-        # Load the height and weight models
-        model_h = HUNet(128)
-        pretrained_model_h = torch.load('models/model_ep_48.pth.tar')
-        model_h.load_state_dict(pretrained_model_h["state_dict"])
-
-        model_w = UNet(128, 32, 32)
-        pretrained_model_w = torch.load('models/model_ep_37.pth.tar')
-        model_w.load_state_dict(pretrained_model_w["state_dict"])
-
-        if torch.cuda.is_available():
-            model = model_w.cuda(3)
-        else:
-            model = model_w
 
         # Preprocess the image
         RES = 128
@@ -57,40 +53,31 @@ def predict():
         if torch.cuda.is_available():
             X = X.cuda()
 
-        model.eval()
+        model_w.eval()
         with torch.no_grad():
-            m_p, j_p, _, w_p = model(X)
+            m_p, j_p, _, w_p = model_w(X)
 
-        del model
-
-        if torch.cuda.is_available():
-            model = model_h.cuda(3)
-        else:
-            model = model_h
-
-        model.eval()
+        model_h.eval()
         with torch.no_grad():
-            _, _, h_p = model(X)
+            _, _, h_p = model_h(X)
 
         height_cm = 100 * h_p.item()
         weight_kg = 100 * w_p.item()
-        BMI = weight_kg / ((height_cm)/100)**2
-        bmi_resul = BMI_calculator(BMI)
-
+        BMI = weight_kg / ((height_cm) / 100) ** 2
+        bmi_result = BMI_calculator(BMI)
 
         # Create a JSON response
         response = {
             "altura_cm": height_cm,
             "peso_kg": weight_kg,
-            "BMI" : BMI,
-            "estado" : bmi_resul
+            "BMI": BMI,
+            "estado": bmi_result
         }
 
         return jsonify(response)
 
     except Exception as e:
         return str(e), 400  # Return an error message if something goes wrong
-
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)

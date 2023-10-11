@@ -7,10 +7,12 @@ import torch
 import cv2
 from torchvision import transforms
 import matplotlib.pyplot as plt
-from network_weight import UNet
-from network import UNet as HUNet
+from utils.network_weight import UNet
+from utils.network import UNet as HUNet
 import argparse
-from draw_skeleton import create_colors, draw_skeleton
+from utils.draw_skeleton import create_colors, draw_skeleton
+from utils.bmi_calcultator import create_output_directory, BMI_calculator
+
 
 """
     Height and Weight Information from Unconstrained Images
@@ -23,8 +25,8 @@ from draw_skeleton import create_colors, draw_skeleton
     python HWFinder.py -i [IMAGE ADDRESS] -g [GPU NUMBER] -r [RESOLUTION]
 """
 
+
 if __name__ == "__main__":
-    
     # PARSER SETTINGS
     np.random.seed(23)
     parser = argparse.ArgumentParser(description="Height and Weight Information from Unconstrained Images")
@@ -33,6 +35,8 @@ if __name__ == "__main__":
     parser.add_argument('-g', '--gpu', type=int, default=0, help='GPU selection')
     parser.add_argument('-r', '--resolution', type=int, required=True, help='Resolution for Square Image')
     args = parser.parse_args()
+
+    # Specify the name of the model file in Azure Blob Storage
     
     # Height
     model_h = HUNet(128)
@@ -128,20 +132,30 @@ if __name__ == "__main__":
     layer = cv2.addWeighted(o_img.astype('uint8'), 0.55, mask_out_RGB.astype('uint8'), 0.45, 0) 
     img_sk = draw_skeleton(layer/255, joint_pos, colors)
 
+
     out_name = args.image.split("/")[-1].replace(fformat, '.mask.png')
     out_name_j = args.image.split("/")[-1].replace(fformat, '.joint.png')
     out_name_sk = args.image.split("/")[-1].replace(fformat, '.skeleton.png')
-    
-    with open("out/" + args.image.split("/")[-1].replace(fformat, '.info.txt'), 'w') as out_file:
+
+    output_directory = create_output_directory(args.image)
+
+    out_name = os.path.join(output_directory, out_name)
+    out_name_j = os.path.join(output_directory, out_name_j)
+    out_name_sk = os.path.join(output_directory, out_name_sk)
+
+    with open(os.path.join(output_directory, args.image.split("/")[-1].replace(fformat, '.info.txt')), 'w') as out_file:
         out_file.write("Image: " + args.image)
-        out_file.write("\nHeight: {:.1f} cm\nWeight: {:.1f} kg".format(100*h_p.item(), 100*w_p.item()))
-        
-    cv2.imwrite("out/" + out_name, (255*mask_out).astype('uint8'))
-    plt.imsave("out/" + out_name_j, joint_out, cmap='jet')
-    plt.imsave("out/" + out_name_sk, img_sk)
-    
+        out_file.write("\Altura: {:.1f} cm\Peso: {:.1f} kg".format(100 * h_p.item(), 100 * w_p.item()))
+        BMI = 100 * w_p.item() / ((100 * h_p.item())/100)**2
+        out_file.write("\nIMC: " + str(BMI))
+        out_file.write("\nEstado: " + BMI_calculator(BMI))
+
+    cv2.imwrite(out_name, (255 * mask_out).astype('uint8'))
+    plt.imsave(out_name_j, joint_out, cmap='jet')
+    plt.imsave(out_name_sk, img_sk)
+
     print("\nImage: " + args.image)
-    print("Height: {:.1f} cm\nWeight: {:.1f} kg".format(100*h_p.item(), 100*w_p.item()))
-    print("Mask and Joints can be found in /out directory")
+    print("Height: {:.1f} cm\nWeight: {:.1f} kg".format(100 * h_p.item(), 100 * w_p.item()))
+    print(f"Mask and Joints saved in: {output_directory}")
         
     del model

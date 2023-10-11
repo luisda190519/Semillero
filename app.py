@@ -5,10 +5,11 @@ import cv2
 import torch
 from torchvision import transforms
 import matplotlib.pyplot as plt
-from network_weight import UNet
-from network import UNet as HUNet
+from utils.network_weight import UNet
+from utils.network import UNet as HUNet
 from flask import Flask, request, jsonify
-from draw_skeleton import create_colors, draw_skeleton
+from utils.bmi_calcultator import create_output_directory, BMI_calculator
+
 
 app = Flask(__name__)
 
@@ -71,16 +72,18 @@ def predict():
         with torch.no_grad():
             _, _, h_p = model(X)
 
-        # ... Continue with the image preprocessing code as in the original script
-
-        # Convert height and weight predictions to human-readable values
         height_cm = 100 * h_p.item()
         weight_kg = 100 * w_p.item()
+        BMI = weight_kg / ((height_cm)/100)**2
+        bmi_resul = BMI_calculator(BMI)
+
 
         # Create a JSON response
         response = {
-            "height_cm": height_cm,
-            "weight_kg": weight_kg
+            "altura_cm": height_cm,
+            "peso_kg": weight_kg,
+            "BMI" : BMI,
+            "estado" : bmi_resul
         }
 
         return jsonify(response)

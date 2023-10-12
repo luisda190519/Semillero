@@ -3,29 +3,53 @@ import numpy as np
 import cv2
 import torch
 from torchvision import transforms
+from azure.storage.blob import BlobServiceClient
+from io import BytesIO
 from flask import Flask, request, jsonify
 from utils.network_weight import UNet
 from utils.network import UNet as HUNet
-from utils.bmi_calcultator import BMI_calculator
+from utils.bmi_calculator import BMI_calculator
 
 app = Flask(__name__)
 
-# Load the height and weight models outside of the route function
-model_h = HUNet(128)
-pretrained_model_h = torch.load('models/model_ep_48.pth.tar', map_location=torch.device('cpu'))
-model_h.load_state_dict(pretrained_model_h["state_dict"])
+# Initialize your Azure Blob Storage client
+connection_string = "DefaultEndpointsProtocol=https;AccountName=modelosemillero;AccountKey=tyBROI5tn6oxVpk1K/nKL8muX9ZKy8OsMHplkLtyyyNDC4vG3QSxWw22uIDiMthDuYWNSEX006un+AStCP3YHw==;EndpointSuffix=core.windows.net"
+blob_service_client = BlobServiceClient.from_connection_string(connection_string)
+container_name = "semillero"
+model_height_blob = "model_ep_48.pth.tar"
+model_weight_blob = "model_ep_37.pth.tar"
 
-model_w = UNet(128, 32, 32)
-pretrained_model_w = torch.load('models/model_ep_37.pth.tar', map_location=torch.device('cpu'))
-model_w.load_state_dict(pretrained_model_w["state_dict"])
+# Define a function to load models from Azure Blob Storage
+def load_models_from_blob():
+    model_h_blob_client = blob_service_client.get_blob_client(container_name, model_height_blob)
+    model_w_blob_client = blob_service_client.get_blob_client(container_name, model_weight_blob)
 
-if torch.cuda.is_available():
-    model_w = model_w.cuda(3)
-    model_h = model_h.cuda(3)
+    # Load the height model
+    height_model_bytes = model_h_blob_client.download_blob().readall()
+    height_model_stream = BytesIO(height_model_bytes)
+    model_h = HUNet(128)
+    model_h.load_state_dict(torch.load(height_model_stream, map_location=torch.device('cpu'))["state_dict"])
+
+    # Load the weight model
+    weight_model_bytes = model_w_blob_client.download_blob().readall()
+    weight_model_stream = BytesIO(weight_model_bytes)
+    model_w = UNet(128, 32, 32)
+    model_w.load_state_dict(torch.load(weight_model_stream, map_location=torch.device('cpu'))["state_dict"])
+
+    if torch.cuda.is_available():
+        model_w = model_w.cuda(3)
+        model_h = model_h.cuda(3)
+
+    return model_h, model_w
+
+# Load models from Azure Blob Storage
+model_h, model_w = load_models_from_blob()
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        # Rest of your prediction code remains the same
+
         # Get the uploaded image from the POST request
         image_data = request.files['image']
 

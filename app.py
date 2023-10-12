@@ -8,7 +8,7 @@ from io import BytesIO
 from flask import Flask, request, jsonify
 from utils.network_weight import UNet
 from utils.network import UNet as HUNet
-from utils.bmi_calculator import BMI_calculator
+from utils.bmi_calcultator import BMI_calculator
 
 app = Flask(__name__)
 

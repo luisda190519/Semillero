@@ -1,3 +1,0 @@
-Image: test/yoBefore.jpg
-Height: 166.5 cm
-Weight: 78.9 kg

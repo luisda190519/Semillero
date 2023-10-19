@@ -1,0 +1,5 @@
+Image: C:/Users/HP/Downloads/WhatsApp Image 2023-10-18 at 10.19.08 PM (1).jpeg
+Altura: 166.6 cm
+Peso: 68.6 kg
+IMC: 24.699675875166097
+Estado: Normal

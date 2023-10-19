@@ -1,3 +1,0 @@
-Image: test/federer.jpg\Altura: 180.5 cm\Peso: 80.5 kg
-IMC: 24.702711938584656
-Estado: Normal

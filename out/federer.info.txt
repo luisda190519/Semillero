@@ -1,3 +1,0 @@
-Image: test/federer.jpg
-Height: 180.5 cm
-Weight: 80.5 kg

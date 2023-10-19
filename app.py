@@ -9,6 +9,8 @@ from flask import Flask, request, jsonify
 from utils.network_weight import UNet
 from utils.network import UNet as HUNet
 from utils.bmi_calcultator import BMI_calculator
+import requests  # Don't forget to import requests
+
 
 app = Flask(__name__)
 
@@ -21,18 +23,17 @@ model_weight_blob = "model_ep_37.pth.tar"
 
 # Define a function to load models from Azure Blob Storage
 def load_models_from_blob():
-    model_h_blob_client = blob_service_client.get_blob_client(container_name, model_height_blob)
-    model_w_blob_client = blob_service_client.get_blob_client(container_name, model_weight_blob)
+    # Construct the model URLs
+    model_h_url = f"https://{container_name}.blob.core.windows.net/{model_height_blob}"
+    model_w_url = f"https://{container_name}.blob.core.windows.net/{model_weight_blob}"
 
     # Load the height model
-    height_model_bytes = model_h_blob_client.download_blob().readall()
-    height_model_stream = BytesIO(height_model_bytes)
+    height_model_stream = BytesIO(requests.get(model_h_url).content)
     model_h = HUNet(128)
     model_h.load_state_dict(torch.load(height_model_stream, map_location=torch.device('cpu'))["state_dict"])
 
     # Load the weight model
-    weight_model_bytes = model_w_blob_client.download_blob().readall()
-    weight_model_stream = BytesIO(weight_model_bytes)
+    weight_model_stream = BytesIO(requests.get(model_w_url).content)
     model_w = UNet(128, 32, 32)
     model_w.load_state_dict(torch.load(weight_model_stream, map_location=torch.device('cpu'))["state_dict"])
 
@@ -41,6 +42,7 @@ def load_models_from_blob():
         model_h = model_h.cuda(3)
 
     return model_h, model_w
+
 
 # Load models from Azure Blob Storage
 model_h, model_w = load_models_from_blob()

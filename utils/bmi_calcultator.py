@@ -1,6 +1,8 @@
+import os
+
 def create_output_directory(image_path):
     image_name = os.path.splitext(os.path.basename(image_path))[0]
-    output_directory = os.path.join("out", image_name)
+    output_directory = os.path.join("Salida", image_name)
     if not os.path.exists(output_directory):
         os.makedirs(output_directory)
     return output_directory

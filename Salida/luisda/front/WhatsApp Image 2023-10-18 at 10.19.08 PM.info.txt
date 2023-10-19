@@ -1,0 +1,5 @@
+Image: C:/Users/HP/Downloads/WhatsApp Image 2023-10-18 at 10.19.08 PM.jpeg
+Altura: 165.1 cm
+Peso: 89.1 kg
+IMC: 32.65293385006527
+Estado: Obesidad Clase I

@@ -1,3 +1,0 @@
-Image: test/klil.jpeg
-Height: 177.2 cm
-Weight: 108.9 kg

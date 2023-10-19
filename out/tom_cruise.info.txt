@@ -1,3 +1,0 @@
-Image: test/tom_cruise.jpg
-Height: 180.0 cm
-Weight: 78.4 kg

@@ -1,3 +1,0 @@
-Image: test/yoAfter.jpeg
-Height: 172.2 cm
-Weight: 67.1 kg

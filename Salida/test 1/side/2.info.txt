@@ -1,0 +1,5 @@
+Image: C:/Users/HP/Downloads/2.jpg
+Altura: 166.1 cm
+Peso: 60.3 kg
+IMC: 21.83119278745849
+Estado: Normal

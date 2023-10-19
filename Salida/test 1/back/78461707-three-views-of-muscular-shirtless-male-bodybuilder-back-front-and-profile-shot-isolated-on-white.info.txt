@@ -1,0 +1,5 @@
+Image: C:/Users/HP/Downloads/78461707-three-views-of-muscular-shirtless-male-bodybuilder-back-front-and-profile-shot-isolated-on-white.jpg
+Altura: 182.1 cm
+Peso: 69.4 kg
+IMC: 20.948231043879705
+Estado: Normal

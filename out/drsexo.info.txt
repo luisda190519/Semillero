@@ -1,3 +1,0 @@
-Image: test/drsexo.jpeg
-Height: 167.5 cm
-Weight: 109.2 kg
